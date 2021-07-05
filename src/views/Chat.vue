@@ -22,17 +22,21 @@
               type="button" 
               class="mr-2" 
               title="Approve attendee"
-              @click="toggleApproval(attendee.id)">
+              @click="toggleApproval(attendee.id)"
+              v-if="user && user.uid !== hostID">
               <font-awesome-icon icon="user"></font-awesome-icon>
             </a>
             <span class="mr-2" title="On Air">
               <font-awesome-icon icon="podcast"></font-awesome-icon>
             </span>
             <span></span>
-            <span class="pl-1">{{ attendee.displayName }}</span>
+            <span 
+            class="pl-1"
+            :class="[attendee.id == user.uid ? 'font-weight-bold text-danger' : '']"
+            >{{ attendee.displayName }}</span>
           </li>
         </ul>
-        <div>
+        <div v-if="user && user.uid == hostID">
           <h5 class="mt-4">Pending</h5>
           <ul class="list-unstyled">
             <li class="mb-1" v-for="attendee in attendeesPendingArr" :key="attendee.id">
@@ -60,7 +64,7 @@
     </div>
     <div v-else>
       <p class="lead">
-        Hi <strong class="text-primary font-weight-bold"></strong>, you're currently in the room
+        Hi <strong class="text-primary font-weight-bold">{{ user.displayName }}</strong>, you're currently in the room
         waiting for the owner of the chat to add you to the meeting. Please wait.
       </p>
     </div>
@@ -101,7 +105,6 @@ export default {
 
         ref.get().then(attendeeDoc => {
           const approved = attendeeDoc.data().approved
-
           if(approved){
             ref.update({
               approved: !approved
@@ -162,7 +165,7 @@ export default {
         // Push all users that are approved to the approved arr.
         if(attendeeDoc.data().approved) {
           if(this.user.uid == attendeeDoc.id) {
-            this.attendeesApproved = true
+            this.attendeeApproved = true
           }
           tempApproved.push({
             id: attendeeDoc.id,
@@ -171,7 +174,7 @@ export default {
           })
         } else{ // Push all users that are NOT approved to the pending arr.
           if(this.user.uid == attendeeDoc.id) {
-            this.attendeesApproved = false
+            this.attendeeApproved = false
           }
           tempPendeing.push({
             id: attendeeDoc.id,
